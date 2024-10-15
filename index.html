@@ -96,7 +96,7 @@ alert('a');
                     width: 150,
                     height: 150,
                     type: "svg",
-                    data: "https://example.com", // Test with a known valid URL
+                    data: data,
                     dotsOptions: { color: "#4267b2", type: "rounded" },
                     backgroundOptions: { color: "#e9ebee" },
                     imageOptions: { crossOrigin: "anonymous", margin: 10 }
@@ -126,9 +126,20 @@ alert('b');
 alert('1');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 alert('2');
-            const imageDataUrl = canvas.toDataURL('image/png');
+
+            canvas.toBlob(async function(blob) {
+    		// Create a URL for the Blob
+    	    	const imageDataUrl = URL.createObjectURL(blob);
+    
+    		// Use the imageUrl for your purpose (e.g., displaying or processing)
+   		alert(imageDataUrl); // or do something with imageUrl
+	    
+
+
+
+            // const imageDataUrl = canvas.toDataURL('image/png'); this generates long url, so we are using blob
 alert('3');
-alert(imageDataUrl);
+	    alert(imageDataUrl);
 
             try {
                 const imageQR = await generateQRCode(imageDataUrl);
@@ -142,6 +153,7 @@ alert('7');
             } catch (error) {
                 alert('Error capturing image: ' + error.message);
             }
+	  }, 'image/png');
         });
 
 
