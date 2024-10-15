@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> PhotoBooth </title>
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js">
+</script>
+</head>
+<body>
+    <input type="text" id="qrInput" placeholder="Enter text or URL" />
+    <button id="generateBtn">Generate</button>
+    <div id="canvas"></div>
+    <div id="error" style="color: red;"></div>
+    
+    <script>
+        async function generateQRCode(data) {
+            const qrCode = new QRCodeStyling({
+                width: 150,
+                height: 150,
+                type: "svg",
+                data: data,
+                dotsOptions: { color: "#4267b2", type: "rounded" },
+                backgroundOptions: { color: "#e9ebee" },
+                imageOptions: { crossOrigin: "anonymous", margin: 10 }
+            });
+
+            const svgData = await qrCode.getRawData("svg");
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
+            return URL.createObjectURL(svgBlob);
+        }
+
+        document.getElementById('generateBtn').onclick = async function() {
+            const qrInput = document.getElementById('qrInput').value.trim();
+            document.getElementById("canvas").innerHTML = '';
+
+            try {
+                const qrCodeUrl = await generateQRCode(qrInput);
+                const img = document.createElement('img');
+                img.src = qrCodeUrl;
+                document.getElementById("canvas").appendChild(img);
+		alert(qrCodeUrl);
+            } catch (error) {
+                alert("error");
+            }
+        };
+    </script>
+</body>
+</html>
