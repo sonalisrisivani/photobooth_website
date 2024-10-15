@@ -4,46 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> PhotoBooth </title>
-    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js">
-</script>
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.0/qrious.min.js"></script>
+
+<style>
+        /* Add CSS styles for the page */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .item-grid {
+            margin-top: 20px;
+        }
+        .item-card {
+            display: inline-block;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+        }
+        .item-card img {
+            display: block;
+            max-width: 100%;
+        }
+</style>
+
 </head>
 <body>
-    <input type="text" id="qrInput" placeholder="Enter text or URL" />
-    <button id="generateBtn">Generate</button>
-    <div id="canvas"></div>
-    <div id="error" style="color: red;"></div>
+	<h1>Photobooth </h1>
+	<div>
+		<h1> take pic </h1>
+		<video id="video" width="300" height="200" autoplay> </video>
+		<button id="captureButton"> Capture image </button>
+	</div>
+
+	<h1> View images </h1>
+	<div id="itemGrid"> </div>
+
+
+
+
+
     
-    <script>
-        async function generateQRCode(data) {
-            const qrCode = new QRCodeStyling({
-                width: 150,
-                height: 150,
-                type: "svg",
-                data: data,
-                dotsOptions: { color: "#4267b2", type: "rounded" },
-                backgroundOptions: { color: "#e9ebee" },
-                imageOptions: { crossOrigin: "anonymous", margin: 10 }
+
+
+
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWhzMHSSNyBJILjy0ELy2WCdiwjc84SJ8",
+            authDomain: "photobooth-sss.firebaseapp.com",
+            databaseURL: "https://photobooth-sss-default-rtdb.firebaseio.com/",
+            projectId: "photobooth-sss",
+            storageBucket: "photobooth-sss.appspot.com",
+            messagingSenderId: "893599274396",
+            appId: "1:893599274396:web:a1454f34acbd380890a459",
+            measurementId: "G-3B9BXBCZPG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const itemGrid = document.getElementById('itemGrid');
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const captureButton = document.getElementById('captureButton');
+
+
+
+
+
+	// Access the webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((error) => {
+                console.error("Error accessing webcam:", error);
             });
 
-            const svgData = await qrCode.getRawData("svg");
-            const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
-            return URL.createObjectURL(svgBlob);
+
+
+
+ // js for qr generation
+        async function generateQRCode(data) {
+            try {
+alert('a');
+                const qrCode = new QRCodeStyling({
+                    width: 150,
+                    height: 150,
+                    type: "svg",
+                    data: "https://example.com", // Test with a known valid URL
+                    dotsOptions: { color: "#4267b2", type: "rounded" },
+                    backgroundOptions: { color: "#e9ebee" },
+                    imageOptions: { crossOrigin: "anonymous", margin: 10 }
+                });
+alert('b');
+                const svgData = await qrCode.getRawData("svg");
+                const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
+                return URL.createObjectURL(svgBlob);
+            } catch (error) {
+                console.error("Error generating QR code:", error);
+                throw new Error("QR Code Generation Failed");
+            }
         }
 
-        document.getElementById('generateBtn').onclick = async function() {
-            const qrInput = document.getElementById('qrInput').value.trim();
-            document.getElementById("canvas").innerHTML = '';
+
+
+
+
+
+
+// when image is clicked this will run or Event listener for capturing image
+	captureButton.addEventListener('click', async () => {
+            const context = canvas.getContext('2d');
+            canvas.width = 300;
+            canvas.height = 200;
+alert('1');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+alert('2');
+            const imageDataUrl = canvas.toDataURL('image/png');
+alert('3');
+alert(imageDataUrl);
 
             try {
-                const qrCodeUrl = await generateQRCode(qrInput);
-                const img = document.createElement('img');
-                img.src = qrCodeUrl;
-                document.getElementById("canvas").appendChild(img);
-		alert(qrCodeUrl);
+                const imageQR = await generateQRCode(imageDataUrl);
+alert('4');
+                const newItemRef = ref(database, 'items/' + Date.now());
+alert('5');
+                await set(newItemRef, { image_url: imageDataUrl, image_qr: imageQR });
+alert('6');
+                alert('Image captured and added successfully!');
+alert('7');
             } catch (error) {
-                alert("error");
+                alert('Error capturing image: ' + error.message);
             }
-        };
-    </script>
-</body>
+        });
+
+
+
+
+
+	// Display images from the database
+        onValue(ref(database, 'items'), (snapshot) => {
+            itemGrid.innerHTML = '';
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                const img = document.createElement('img');
+                img.src = data.image_url;
+                img.alt = "Item Image";
+                itemCard.appendChild(img);
+
+                itemGrid.appendChild(itemCard);
+            });
+        });
+
+
+
+
+
+
+
+
+
+// Create QR code image element and append it
+
+
+
+
+
+
+
+
+</script>
+
+
+                
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
 </html>
