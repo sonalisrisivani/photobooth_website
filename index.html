@@ -88,28 +88,53 @@
 
 
 
+
+
+
+
+
+
+
+
+
  // js for qr generation
         async function generateQRCode(data) {
-            try {
+        try {
 alert('a');
                 const qrCode = new QRCodeStyling({
                     width: 150,
                     height: 150,
                     type: "svg",
-                    data: data,
+                    data: "https://example.com", // Test with a known valid URL -keep data
                     dotsOptions: { color: "#4267b2", type: "rounded" },
                     backgroundOptions: { color: "#e9ebee" },
                     imageOptions: { crossOrigin: "anonymous", margin: 10 }
                 });
 alert('b');
-                const svgData = await qrCode.getRawData("svg");
-                const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
-                return URL.createObjectURL(svgBlob);
-            } catch (error) {
+
+         
+
+        
+        	// Create a temporary container for the QR code
+                const container = document.createElement('div');
+                await qrCode.append(container);
+
+                // Convert the SVG content to a data URL
+                const svgElement = container.querySelector('svg');
+                const dataURL = new XMLSerializer().serializeToString(svgElement);
+                const base64Data = btoa(dataURL);
+                return `data:image/svg+xml;base64,${base64Data}`; // Return the data URL
+            } 
+            catch (error) {
                 console.error("Error generating QR code:", error);
                 throw new Error("QR Code Generation Failed");
             }
-        }
+      
+
+  }
+
+
+
 
 
 
@@ -126,20 +151,9 @@ alert('b');
 alert('1');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 alert('2');
-
-            canvas.toBlob(async function(blob) {
-    		// Create a URL for the Blob
-    	    	const imageDataUrl = URL.createObjectURL(blob);
-    
-    		// Use the imageUrl for your purpose (e.g., displaying or processing)
-   		alert(imageDataUrl); // or do something with imageUrl
-	    
-
-
-
-            // const imageDataUrl = canvas.toDataURL('image/png'); this generates long url, so we are using blob
+            const imageDataUrl = canvas.toDataURL('image/png');
 alert('3');
-	    alert(imageDataUrl);
+alert(imageDataUrl);
 
             try {
                 const imageQR = await generateQRCode(imageDataUrl);
@@ -153,30 +167,39 @@ alert('7');
             } catch (error) {
                 alert('Error capturing image: ' + error.message);
             }
-	  }, 'image/png');
         });
 
 
 
 
-// Display images from the database
-onValue(ref(database, 'items'), (snapshot) => {
-    itemGrid.innerHTML = ''; // Clear existing items
 
-    snapshot.forEach((childSnapshot) => {
-        const data = childSnapshot.val();
 
-        // Create a new item card
-        const itemCard = document.createElement('div');
-        itemCard.className = 'item-card';
 
-        // Create and append the image element
-        const img = document.createElement('img');
-        img.src = data.image_url;
-        img.alt = "Item Image";
-        itemCard.appendChild(img);
 
-        // Create delete button
+
+
+
+
+
+
+
+
+	// Display images from the database
+        onValue(ref(database, 'items'), (snapshot) => {
+            itemGrid.innerHTML = '';
+
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                const img = document.createElement('img');
+                img.src = data.image_url;
+                img.alt = "Item Image";
+                itemCard.appendChild(img);
+
+	// Create delete button
         const deleteButton = document.createElement('button');
         deleteButton.innerText = "Delete";
         deleteButton.onclick = async () => {
@@ -192,10 +215,21 @@ onValue(ref(database, 'items'), (snapshot) => {
         };
         itemCard.appendChild(downloadButton);
 
-        // Append the item card to the item grid
-        itemGrid.appendChild(itemCard);
-    });
-});
+
+
+
+
+                itemGrid.appendChild(itemCard);
+            });
+        });
+
+
+
+
+
+
+
+
 
 
 
@@ -208,6 +242,9 @@ async function deleteImage(itemKey) {
     const itemRef = ref(database, 'items/' + itemKey);
     await remove(itemRef); // Delete the item from the database
 }
+
+
+
 
 // Function to download an image and display the QR code
 function downloadImage(imageUrl, qrImageUrl, itemCard) {
@@ -226,6 +263,10 @@ function downloadImage(imageUrl, qrImageUrl, itemCard) {
     link.click();
     document.body.removeChild(link); // Clean up
 }
+
+
+
+
 
 
 
