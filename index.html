@@ -6,7 +6,7 @@
     <title> PhotoBooth </title>
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.0/qrious.min.js"></script>
 
 <style>
         /* Add CSS styles for the page */
@@ -88,13 +88,6 @@
 
 
 
-
-
-
-
-
-
-
  // js for qr generation
         async function generateQRCode(data) {
             try {
@@ -117,20 +110,6 @@ alert('b');
                 throw new Error("QR Code Generation Failed");
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -180,36 +159,28 @@ alert('7');
 
 
 
+// Display images from the database
+onValue(ref(database, 'items'), (snapshot) => {
+    itemGrid.innerHTML = ''; // Clear existing items
 
+    snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
 
+        // Create a new item card
+        const itemCard = document.createElement('div');
+        itemCard.className = 'item-card';
 
+        // Create and append the image element
+        const img = document.createElement('img');
+        img.src = data.image_url;
+        img.alt = "Item Image";
+        itemCard.appendChild(img);
 
-
-
-
-
-
-
-	// Display images from the database
-        onValue(ref(database, 'items'), (snapshot) => {
-            itemGrid.innerHTML = '';
-            snapshot.forEach((childSnapshot) => {
-                const data = childSnapshot.val();
-
-                const itemCard = document.createElement('div');
-                itemCard.className = 'item-card';
-
-                // Create and append the image element
-		const img = document.createElement('img');
-                img.src = data.image_url;
-                img.alt = "Item Image";
-                itemCard.appendChild(img);
-
-	// Create delete button
+        // Create delete button
         const deleteButton = document.createElement('button');
         deleteButton.innerText = "Delete";
         deleteButton.onclick = async () => {
-            await deleteImage(childSnapshot.key);
+            await deleteImage(childSnapshot.key); // Call delete function
         };
         itemCard.appendChild(deleteButton);
 
@@ -221,15 +192,10 @@ alert('7');
         };
         itemCard.appendChild(downloadButton);
 
-		// Append the item card to the item grid
-                itemGrid.appendChild(itemCard);
-            });
-        });
-
-
-
-
-
+        // Append the item card to the item grid
+        itemGrid.appendChild(itemCard);
+    });
+});
 
 
 
@@ -260,12 +226,6 @@ function downloadImage(imageUrl, qrImageUrl, itemCard) {
     link.click();
     document.body.removeChild(link); // Clean up
 }
-
-
-
-
-
-
 
 
 
